@@ -74,17 +74,8 @@ namespace Project_BankAssessment
             {
                 try
                 {
-                    var UserAcc = from account in ctx.Accounts
-                                  join user in ctx.Users on account.UserId equals user.Id
-                                  select new Account
-                                  {
-                                      User = user,
-                                      TransactionDate = account.TransactionDate,
-                                      Amount = account.Amount
-                                  };
-
-                    var toAccount = UserAcc.SingleOrDefault(acc => acc.User.Username == accountUser);
-
+                    var toAccount = ctx.Accounts.Include(acc => acc.User)
+                                                .Single(acc => acc.User.Username == accountUser);
                     return toAccount;
                 }
                 catch(Exception ex)
@@ -100,17 +91,11 @@ namespace Project_BankAssessment
         {
             using(var ctx = new BankAccountsContext())
             {
-                var UserAcc = from account in ctx.Accounts
-                              join user in ctx.Users on account.UserId equals user.Id
-                              where user.Username != Cooperative
-                              select new Account
-                              {
-                                  User = user,
-                                  TransactionDate = account.TransactionDate,
-                                  Amount = account.Amount
-                              };
+                var UserAcc = ctx.Accounts.Include(acc => acc.User)
+                                          .Where(acc => acc.User.Username != Cooperative)
+                                          .ToList();
 
-                return UserAcc.ToList();      
+                return UserAcc;      
             }
         }
 
